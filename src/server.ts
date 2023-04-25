@@ -25,7 +25,7 @@ export class RedisTSServer {
         // on incoming request
         socket.on('data', request => {
             let request_str = request.toString()
-            console.log(`incoming data: ${request_str}`)
+            console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${request_str}`)
             // create new worker to handle request
             if(request_str.match("QUIT")) {
                 socket.end()
