@@ -10,8 +10,9 @@ enum RespPrefix {
     SimpleString = '+', // +OK\r\n
     BulkString = '$', // $5\r\nhello\r\n
     Integer = ':', // :1000\r\n
-    Array = '*',
-    Error = '-' // -Error message\r\n
+    Array = '*', // *2\r\n$5\r\nhello\r\n$5\r\nworld\r\n
+
+Error = '-' // -Error message\r\n
 }
 
 // helper to return some RESP_Date and an offset value
@@ -23,31 +24,31 @@ type RESP_Segment = {
 
 export function decodeRESP(buffer: Buffer): RESP_Data {
     try {
-    return parse(buffer)
+    return parse(buffer).value
     } catch (e) {
         // throw the error up to the caller (probably the client)
         throw e
     }
 }
 
-function parse(buffer: Buffer): RESP_Data {
-    // reads the first Char from the Buffer
-    const prefix = String.fromCharCode(buffer.readUInt8())
+function parse(buffer: Buffer, offset=0): RESP_Segment {
+    // reads the first Char from the Buffer and increase the offset
+    const prefix = String.fromCharCode(buffer.readUInt8(offset++))
 
     // use the right decoder by datatype
     if(prefix == RespPrefix.SimpleString) {
-        return decodeSimpleString(buffer)
+        return decodeSimpleString(buffer, offset)
     } else if(prefix == RespPrefix.BulkString) {
-        return decodeBulkString(buffer)
+        return decodeBulkString(buffer, offset)
     } else if(prefix == RespPrefix.Integer) {
-        return decodeInteger(buffer)
+        return decodeInteger(buffer, offset)
     } else if(prefix == RespPrefix.Array) {
-        return decodeArray(buffer)
+        return decodeArray(buffer, offset)
     } else if(prefix == RespPrefix.Error) {
-        const error = decodeError(buffer)
+        const error = decodeError(buffer, offset)
         throw new Error(String(error))
     } else {
-        throw new Error(`RESP error: unknown prefix -> ${prefix}.`);
+        throw new Error(`RESP decode error: unknown prefix -> ${prefix}.`);
     }
 }
 
@@ -68,7 +69,7 @@ function readSegment(buffer: Buffer, offset: number): RESP_Segment{
             throw new Error();
         }
     } catch (e) {
-        throw new Error("RESP error: didn't terminate with CRLF.");
+        throw new Error("RESP decode error: didn't terminate with CRLF.");
     }
 
     return {value, offset}
@@ -76,47 +77,47 @@ function readSegment(buffer: Buffer, offset: number): RESP_Segment{
 
 // Decoders for the different Datatyps RESP supports
 // offset defaults to 1 because the 0th byte/char is the prefix
-function decodeSimpleString(buffer: Buffer, offset=1): RESP_Data {
+function decodeSimpleString(buffer: Buffer, offset=1): RESP_Segment {
     // just read until the end and return
-     return readSegment(buffer, offset).value
+     return readSegment(buffer, offset)
 }
 
-function decodeBulkString(buffer: Buffer, offset=1): RESP_Data {
+function decodeBulkString(buffer: Buffer, offset=1): RESP_Segment {
     // read the length of the string
     let resp_segment = readSegment(buffer, offset) // contains the length
     offset = resp_segment.offset // set the new offset
-    const string_length = parseInt(String(resp_segment), 10) // the lenght the string SHOULD have
+    const string_length = parseInt(String(resp_segment.value), 10) // the lenght the string SHOULD have
 
     // NaN check
     if(Number.isNaN(string_length)) {
-        throw new Error('RESP error: length of the BulkString is NaN.')
+        throw new Error('RESP decode error: length of the BulkString is NaN.')
     }
 
     // negative length check
-    if(length < 0) {
-        return null
+    if(string_length < 0) {
+        return {value : null, offset}
     }
 
     resp_segment = readSegment(buffer, offset) // contains the String
     // lenght check
     if(String(resp_segment.value).length !== string_length) {
-        throw new Error("RESP error: length of the BulkString is not the lenght it should be.")
+        throw new Error("RESP decode error: length of the BulkString is not the lenght it should be.")
     }
 
-    return resp_segment.value
+    return resp_segment
 }
 
-function decodeInteger(buffer: Buffer, offset=1): RESP_Data {
+function decodeInteger(buffer: Buffer, offset=1): RESP_Segment {
     const int = parseInt(String(readSegment(buffer, offset).value), 10)
 
     // NaN check
     if(Number.isNaN(int)) {
-        throw new Error("RESP error: Integer is NaN.")
+        throw new Error("RESP decode error: Integer is NaN.")
     }
-    return int
+    return {value : int, offset}
 }
 
-function decodeArray(buffer: Buffer, offset=1): RESP_Data {
+function decodeArray(buffer: Buffer, offset=1): RESP_Segment {
     const element_count_segment = readSegment(buffer, offset) // segment that stores the number of elements
     const element_count = parseInt(String(element_count_segment.value)) // number of elements in the array
     const elements: RESP_Data = []
@@ -124,19 +125,19 @@ function decodeArray(buffer: Buffer, offset=1): RESP_Data {
 
     // NaN check
     if(Number.isNaN(element_count)) {
-        throw new Error('RESP error: length of the BulkString is NaN.')
+        throw new Error('RESP decode error: length of the BulkString is NaN.')
     }
 
     for(let i = 0; i < element_count; i++) {
-        const element_segment = readSegment(buffer, offset)
+        const element_segment = parse(buffer, offset)
         offset = element_segment.offset
         elements.push(element_segment.value)
     }
 
-    return elements
+    return {value : elements, offset}
 }
 
-function decodeError(buffer: Buffer, offset=1): RESP_Data {
+function decodeError(buffer: Buffer, offset=1): RESP_Segment {
     // more or less the same
     return decodeSimpleString(buffer, offset)
 }
