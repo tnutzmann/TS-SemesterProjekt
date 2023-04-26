@@ -1,4 +1,6 @@
 import {Socket, createServer} from 'net'
+import {RESP_Data} from "./basics";
+import {decodeRESP} from "./resp_decoder";
 
 export class RedisTSServer {
     private readonly port: number
@@ -24,16 +26,18 @@ export class RedisTSServer {
         console.log(`new connection from ${socket.remoteAddress}:${socket.remotePort}`)
         // on incoming request
         socket.on('data', request => {
-            let request_str = request.toString()
-            console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${request_str}`)
-            // create new worker to handle request
-            if(request_str.match("QUIT")) {
-                socket.end()
-                console.log(`Terminated connection to ${socket.remoteAddress}:${socket.remotePort}`)
-                return
-            }
+            const decoded_data: RESP_Data = decodeRESP(request)
+            console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${String(decoded_data)}`)
+
             // reply with the same message
-            //socket.write(request_str)
+            // socket.write("Sent data: " + String(decoded_data))
+            socket.write("+OK\r\n") // reply with a simple OK
+        })
+        socket.on("close", () => {
+            // gracefully close the connection
+            socket.end()
+            console.log(`Terminated connection to ${socket.remoteAddress}:${socket.remotePort}`)
+            return
         })
     }
 }
