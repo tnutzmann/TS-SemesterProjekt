@@ -32,7 +32,8 @@ export class RedisTSServer {
                 console.log(`Terminated connection to ${socket.remoteAddress}:${socket.remotePort}`)
                 return
             }
-            socket.write(request_str)
+            // reply with the same message
+            //socket.write(request_str)
         })
     }
 }
