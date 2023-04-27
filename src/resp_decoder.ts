@@ -23,8 +23,8 @@ function parse(buffer: Buffer, offset=0): RESP_Segment {
     } else if(prefix == RespPrefix.Array) {
         return decodeArray(buffer, offset)
     } else if(prefix == RespPrefix.Error) {
-        const error = decodeError(buffer, offset)
-        throw new Error(String(error))
+        const error_Segment = decodeError(buffer, offset)
+        throw new Error(String(error_Segment.value))
     } else {
         throw new Error(`RESP decode error: unknown prefix -> "${prefix}".`);
     }
