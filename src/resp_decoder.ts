@@ -9,7 +9,7 @@ export function decodeRESP(buffer: Buffer): RESP_Data {
     }
 }
 
-function parse(buffer: Buffer, offset=0): RESP_Segment {
+function parse(buffer: Buffer, offset= 0): RESP_Segment {
     // reads the first Char from the Buffer and increase the offset
     const prefix = String.fromCharCode(buffer.readUInt8(offset++))
 
@@ -55,12 +55,12 @@ function readSegment(buffer: Buffer, offset: number): RESP_Segment{
 
 // Decoders for the different Datatyps RESP supports
 // offset defaults to 1 because the 0th byte/char is the prefix
-function decodeSimpleString(buffer: Buffer, offset=1): RESP_Segment {
+function decodeSimpleString(buffer: Buffer, offset: number): RESP_Segment {
     // just read until the end and return
      return readSegment(buffer, offset)
 }
 
-function decodeBulkString(buffer: Buffer, offset=1): RESP_Segment {
+function decodeBulkString(buffer: Buffer, offset: number): RESP_Segment {
     // read the length of the string
     let resp_segment = readSegment(buffer, offset) // contains the length
     offset = resp_segment.offset // set the new offset
@@ -85,7 +85,7 @@ function decodeBulkString(buffer: Buffer, offset=1): RESP_Segment {
     return resp_segment
 }
 
-function decodeInteger(buffer: Buffer, offset=1): RESP_Segment {
+function decodeInteger(buffer: Buffer, offset: number): RESP_Segment {
     const int = parseInt(String(readSegment(buffer, offset).value), 10)
 
     // NaN check
@@ -95,7 +95,7 @@ function decodeInteger(buffer: Buffer, offset=1): RESP_Segment {
     return {value : int, offset}
 }
 
-function decodeArray(buffer: Buffer, offset=1): RESP_Segment {
+function decodeArray(buffer: Buffer, offset: number): RESP_Segment {
     const element_count_segment = readSegment(buffer, offset) // segment that stores the number of elements
     const element_count = parseInt(String(element_count_segment.value)) // number of elements in the array
     const elements: RESP_Data = []
@@ -115,7 +115,7 @@ function decodeArray(buffer: Buffer, offset=1): RESP_Segment {
     return {value : elements, offset}
 }
 
-function decodeError(buffer: Buffer, offset=1): RESP_Segment {
+function decodeError(buffer: Buffer, offset: number): RESP_Segment {
     // more or less the same
     return decodeSimpleString(buffer, offset)
 }
