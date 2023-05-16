@@ -1,4 +1,4 @@
-import {CR, LF, CRLF, RESP_Data, RespPrefix, RESP_Segment} from "./basics"
+import {CR, LF, RESP_Data, RespPrefix, RESP_Segment} from "./globals"
 
 export function decodeRESP(buffer: Buffer): RESP_Data {
     try {
@@ -49,7 +49,6 @@ function readSegment(buffer: Buffer, offset: number): RESP_Segment{
     } catch (e) {
         throw new Error("RESP decode error: didn't terminate with CRLF.");
     }
-
     return {value, offset}
 }
 
