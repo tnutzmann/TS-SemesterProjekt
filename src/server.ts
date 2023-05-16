@@ -1,5 +1,5 @@
 import {Socket, createServer} from 'net'
-import {RESP_Data} from "./basics";
+import {RESP_Data} from "./globals";
 import {decodeRESP} from "./resp_decoder";
 
 export class RedisTSServer {

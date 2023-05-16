@@ -1,5 +1,5 @@
 import {decodeRESP} from "../src/resp_decoder";
-import {RESP_Data} from "../src/basics";
+import {RESP_Data} from "../src/globals";
 
 test("decode SimpleString", () => {
     const simpleOK = Buffer.from("+OK\r\n")
