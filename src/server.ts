@@ -1,6 +1,7 @@
 import {Socket, createServer} from 'net'
 import {RESP_Data} from "./globals";
 import {decodeRESP} from "./resp_decoder";
+import {encodeSimpleString} from "./resp_encoder"
 
 export class RedisTSServer {
     private readonly port: number
@@ -31,7 +32,8 @@ export class RedisTSServer {
 
             // reply with the same message
             // socket.write("Sent data: " + String(decoded_data))
-            socket.write("+OK\r\n") // reply with a simple OK
+            // socket.write("+OK\r\n") // reply with a simple OK
+            socket.write(encodeSimpleString("OK"))
         })
         socket.on("close", () => {
             // gracefully close the connection
