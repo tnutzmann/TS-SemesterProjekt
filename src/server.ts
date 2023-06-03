@@ -1,7 +1,8 @@
 import {Socket, createServer} from 'net'
 import {RESP_Data} from "./globals";
 import {decodeRESP} from "./resp_decoder";
-import {encodeSimpleString} from "./resp_encoder"
+import {handleRequest} from "./requesthandling";
+import {encodeError} from "./resp_encoder";
 
 export class RedisTSServer {
     private readonly port: number
@@ -27,13 +28,18 @@ export class RedisTSServer {
         console.log(`new connection from ${socket.remoteAddress}:${socket.remotePort}`)
         // on incoming request
         socket.on('data', request => {
-            const decoded_data: RESP_Data = decodeRESP(request)
-            console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${String(decoded_data)}`)
+            try {
+                const decoded_data: RESP_Data = decodeRESP(request)
+                console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${String(decoded_data)}`)
 
-            // reply with the same message
-            // socket.write("Sent data: " + String(decoded_data))
-            // socket.write("+OK\r\n") // reply with a simple OK
-            socket.write(encodeSimpleString("OK"))
+                // reply with the same message
+                // socket.write("Sent data: " + String(decoded_data))
+                // socket.write("+OK\r\n") // reply with a simple OK
+                // socket.write(encodeSimpleString("OK"))
+                socket.write(handleRequest(decoded_data))
+            } catch (e) {
+                socket.write(encodeError(String((e as Error).message)))
+            }
         })
         socket.on("close", () => {
             // gracefully close the connection
