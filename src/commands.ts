@@ -1,7 +1,7 @@
 import {encodeError, encodeSimpleString} from "./resp_encoder";
 import {RESP_Data} from "./globals";
 abstract class Command {
-    abstract exec(request): string
+    abstract exec(request: RESP_Data[] ): string
 }
 
 class PING extends Command {
@@ -12,7 +12,7 @@ class PING extends Command {
         if(request[1]) {
             return encodeSimpleString(String(request[1]))
         }
-        return encodeError("PONG")
+        return encodeSimpleString("PONG")
     }
 }
 

@@ -31,11 +31,6 @@ export class RedisTSServer {
             try {
                 const decoded_data: RESP_Data = decodeRESP(request)
                 console.log(`incoming data from ${socket.remoteAddress}:${socket.remotePort}: ${String(decoded_data)}`)
-
-                // reply with the same message
-                // socket.write("Sent data: " + String(decoded_data))
-                // socket.write("+OK\r\n") // reply with a simple OK
-                // socket.write(encodeSimpleString("OK"))
                 socket.write(handleRequest(decoded_data))
             } catch (e) {
                 socket.write(encodeError(String((e as Error).message)))
