@@ -1,12 +1,27 @@
-import {encodeBulkString, encodeError, encodeSimpleString} from "./resp_encoder";
+import {encodeArray, encodeBulkString, encodeError, encodeSimpleString} from "./resp_encoder";
 import {RESP_Data} from "./globals";
 import {setData, getData} from "./datahandling";
 
 abstract class Command {
-    abstract exec(request: RESP_Data[] ): string
+    // infomation needed for the "COMMAND" command
+    constructor(public name: string, // name of the command
+                public arity: number, // nummber of arguments (the name is the first at [0]), negativ means minimal amount
+                public flags: string[],
+                public firstKey: number, // where to find the first key (mostly 1)
+                public lastKey: number, // where to find the last key, if there could be one, else same as firstKey
+                public step: number) // "steps" between keys
+    {
+        this.name = name.toLowerCase()
+    }
+
+    public abstract exec(request: RESP_Data[] ): string
 }
 
 class PING extends Command {
+    constructor() {
+        super("ping", -1, [], 0, 0, 0);
+    }
+
     exec(request: RESP_Data[]): string {
         if(request.length > 2) {
             return encodeError("To many arguments for PONG")
@@ -19,8 +34,12 @@ class PING extends Command {
 }
 
 class SET extends Command {
+    constructor() {
+        super("set", -3, [], 1, 1, 1);
+    }
+
     exec(request: RESP_Data[]): string {
-        if (request.length != 3) {
+        if (request.length != this.arity) {
             return encodeError("Wrong argument count for SET")
         }
         setData(String(request[1]), String(request[2]))
@@ -29,6 +48,9 @@ class SET extends Command {
 }
 
 class GET extends Command {
+    constructor() {
+        super("get", -2, [], 1, 1, 1);
+    }
     exec(request: RESP_Data[]): string {
         if (request.length != 2) {
             return encodeError("Wrong argument count for GET")
@@ -38,8 +60,41 @@ class GET extends Command {
     }
 }
 
+class COMMAND extends Command {
+    // https://redis.io/commands/command/
+    constructor() {
+        super("command", -1, [], 0, 0, 0);
+    }
+
+    public exec(request: RESP_Data[]): string {
+        if(request.length == 1) {
+            return this.getAllCommandDetails()
+        } else {
+            return encodeError("not implemented")
+        }
+    }
+
+    private getAllCommandDetails(): string {
+        const commandDetails: RESP_Data[][] = []
+        COMMANDS.forEach((command) =>{
+            commandDetails.push(this.getCommandDetails(command.name))
+        })
+
+        return encodeArray(commandDetails)
+    }
+
+    private getCommandDetails(commandName: string): RESP_Data[] {
+        const command = COMMANDS.get(commandName.toUpperCase())
+        if(command) {
+            return [command.name, command.arity, command.flags, command.firstKey, command.lastKey, command.step]
+        }
+        throw new Error("Command unknown.")
+    }
+}
+
 export const COMMANDS: Map<string, Command> = new Map<string, Command>([
     ["PING", new PING()],
     ["SET",  new SET()],
-    ["GET", new GET()]
+    ["GET", new GET()],
+    ["COMMAND", new COMMAND()]
 ]);
