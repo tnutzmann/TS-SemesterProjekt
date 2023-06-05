@@ -9,7 +9,7 @@ export function handleRequest(request: RESP_Data) {
             // check if the buffer contains an Array
             return encodeError("Request is bad formated.")
         }
-        const commandName = String(request[0])
+        const commandName = String(request[0]).toUpperCase()
         const command = COMMANDS.get(commandName)
         if (!command){
             return encodeError("Command is unknown.")

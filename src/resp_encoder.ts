@@ -26,7 +26,11 @@ export function encodeArray(data: RESP_Data[]): string {
         // string or null encoding
         else if(typeof d === "string" || d === null) encodedArray += encodeBulkString(d);
         // the last option should be the RESP_Data[]
-        else encodedArray += encodeArray(d)
+        else if(Array.isArray(d)) {
+            encodedArray += encodeArray(d)
+        } else {
+            throw new TypeError("encode array failed. Input dont seems to be null, number, string or an Array of them.")
+        }
     });
     return encodedArray;
 }
