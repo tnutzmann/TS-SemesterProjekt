@@ -5,6 +5,7 @@ import {setData, getData} from "./datahandling";
 abstract class Command {
     // infomation needed for the "COMMAND" command
     constructor(public name: string, // name of the command
+                // public description: string, // description of the command (for COMMAND DOCS)
                 public arity: number, // nummber of arguments (the name is the first at [0]), negativ means minimal amount
                 public flags: string[],
                 public firstKey: number, // where to find the first key (mostly 1)
@@ -68,19 +69,31 @@ class COMMAND extends Command {
 
     public exec(request: RESP_Data[]): string {
         if(request.length == 1) {
-            return this.getAllCommandDetails()
-        } else {
-            return encodeError("not implemented")
+            // return All Commands
+            return encodeArray(this.getAllCommandDetails())
+        } else if(String(request[1]).toUpperCase() === "INFO") {
+            // return specific command
+            if(request.length < 3) { return encodeError("No Command after INFO.") }
+            try {
+                const commandInfos: RESP_Data[] = []
+                for(let i = 2; i < request.length; i++) {
+                    commandInfos.push(this.getCommandDetails(String(request[i])))
+                }
+                return encodeArray(commandInfos)
+            } catch (e) {
+                return encodeError((e as Error).message)
+            }
         }
+        return encodeError("Wrong arguments")
     }
 
-    private getAllCommandDetails(): string {
+    private getAllCommandDetails(): RESP_Data[] {
         const commandDetails: RESP_Data[][] = []
         COMMANDS.forEach((command) =>{
             commandDetails.push(this.getCommandDetails(command.name))
         })
 
-        return encodeArray(commandDetails)
+        return commandDetails
     }
 
     private getCommandDetails(commandName: string): RESP_Data[] {
@@ -88,7 +101,7 @@ class COMMAND extends Command {
         if(command) {
             return [command.name, command.arity, command.flags, command.firstKey, command.lastKey, command.step]
         }
-        throw new Error("Command unknown.")
+        throw new Error("Command " + commandName.toUpperCase() + " unknown.")
     }
 }
 
