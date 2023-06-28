@@ -40,7 +40,7 @@ class SET extends Command {
     }
 
     exec(request: RESP_Data[]): string {
-        if (request.length != this.arity) {
+        if (request.length != -this.arity) {
             return encodeError("Wrong argument count for SET")
         }
         setData(String(request[1]), String(request[2]))

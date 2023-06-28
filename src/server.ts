@@ -26,7 +26,6 @@ export class RedisTSServer {
     private handleConnection(socket: Socket) {
         // log connection information from remote host
         console.log(`new connection from ${socket.remoteAddress}:${socket.remotePort}`)
-        // on incoming request
         socket.on('data', request => {
             try {
                 const decoded_data: RESP_Data = decodeRESP(request)

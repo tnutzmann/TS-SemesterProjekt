@@ -2,7 +2,7 @@ import {CR, LF, RESP_Data, RespPrefix, RESP_Segment} from "./globals"
 
 export function decodeRESP(buffer: Buffer): RESP_Data {
     try {
-    return parse(buffer).value
+        return parse(buffer).value
     } catch (e) {
         // throw the error up to the caller (probably the client)
         throw e

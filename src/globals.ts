@@ -17,6 +17,6 @@ export enum RespPrefix {
 // helper to return some RESP_Date and an offset value
 // (works like a Tuple in Python)
 export type RESP_Segment = {
-    value: RESP_Data
+    value: RESP_Data,
     offset: number
 }

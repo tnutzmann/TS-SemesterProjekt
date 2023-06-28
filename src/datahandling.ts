@@ -8,7 +8,6 @@ export function setData(key: string, value: RESP_Data | undefined):void {
     } else {
         redis_data.set(key, value);
     }
-
 }
 
 export function getData(key: string): RESP_Data | undefined {
