@@ -5,6 +5,7 @@ import {RESP_Data} from "./globals";
 
 export function handleRequest(request: RESP_Data) {
     try{
+        // console.log(handleRequest.name, request)
         if (!Array.isArray(request)) {
             // check if the buffer contains an Array
             return encodeError("Request is bad formated.")
@@ -14,8 +15,9 @@ export function handleRequest(request: RESP_Data) {
         if (!command){
             return encodeError("Command is unknown.")
         }
-
-        return command.exec(request)
+        let res = command.exec(request)
+        // console.log(handleRequest.name, res)
+        return res
 
     } catch (e) {
         return encodeError((e as Error).message)

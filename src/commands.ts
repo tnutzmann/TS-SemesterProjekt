@@ -25,7 +25,7 @@ class PING extends Command {
 
     exec(request: RESP_Data[]): string {
         if(request.length > 2) {
-            return encodeError("To many arguments for PONG")
+            return encodeError("To many arguments for PING")
         }
         if(request[1]) {
             return encodeSimpleString(String(request[1]))
