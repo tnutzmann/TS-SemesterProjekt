@@ -1,19 +1,40 @@
 # TS-SemesterProjekt
+A very basic implementation of **REDIS** in TypeScript, with the **RESP** (**RE**dis **S**erialization **P**rotocol)
 
-## Connect
+## Requirements
+the actual requirements may be lower but this is the setup I use
+- node v18.15.0
+- redis-cli 7.0.11
+- telnet
 
-You can use the **redis-cli** or connect via TELNET:
+## Startup
+1. Run the Server
+``` bash
+npm install
+
+# run tests
+npm test
+# test with coverage
+npm test-coverage
+
+# run the server
+npm start
 ```
+2. connect to the server
+```bash
+# recommended way
+redis-cli
+
+# as alternativ use telnet
 telnet localhost 6379
 ```
 
-## Run the Tests
-```
-npx jest
-```
-or to get the coverage information
-```
-npx jest --coverage
-```
+## Usable commands
+### PING
+Test the connection
 
+### SET
+Set a value to a specific Key 
 
+### GET
+Get a value for a specific Key
