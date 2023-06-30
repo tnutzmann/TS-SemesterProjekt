@@ -44,3 +44,5 @@ Get a value for a specific Key
 ```
 GET key
 ```
+
+Author: [tnutzmann](https://github.com/tnutzmann/TS-SemesterProjekt)
